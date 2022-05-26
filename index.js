@@ -19,7 +19,12 @@ async function run() {
         await client.connect();
         console.log('db connect');
 
-        const allToolsCollection = client.db("machanic-shop").collection("allTools");
+        const db = client.db("machanic-shop")
+
+        const allToolsCollection = db.collection("allTools");
+        const purchaseCollection = db.collection("purchase");
+        const userCollection = db.collection("users");
+
 
         // all products POST
         app.get('/tools', async (req, res) => {
@@ -37,6 +42,45 @@ async function run() {
             res.json(result)
 
         })
+        app.post('/purchase', async (req, res) => {
+            const order = req.body;
+            const { productId, quantity } = req.body;
+            order.createdAt = new Date()
+            const result1 = await purchaseCollection.insertOne(order);
+
+            const query = { _id: ObjectId(productId) };
+            const product = await allToolsCollection.findOne(query);
+            const updatedQuantity = product.quantity - quantity;
+            const updateDoc = { $set: { quantity: updatedQuantity } };
+            const result = await allToolsCollection.updateOne(query, updateDoc);
+            res.json({ result1, result })
+
+        })
+        //getting my orders by filtering email
+        app.get('/purchase/:email', async (req, res) => {
+            // const { id } = req.params;
+            // const query = { _id: ObjectId(id) };
+            let email = req.params.email;
+            let query = { email: email }
+            const result = await purchaseCollection.find(query).toArray();
+            res.json(result)
+        })
+
+        // // user
+        // app.put('/user/:email', async (req, res) => {
+        //     const email = req.params.email;
+        //     const user = req.body;
+        //     const filter = { email: email };
+        //     const options = { upsert: true };
+        //     const updateDoc = {
+        //       $set: user,
+        //     };
+        //     const result = await userCollection.updateOne(filter, updateDoc, options);
+        //     const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+        //     res.send({ result, token });
+        //   })
+
+
 
     } finally {
         //   await client.close();
