@@ -79,7 +79,7 @@ async function run() {
             const addItems = req.body;
             console.log(addItems);
             const result = await allToolsCollection.insertOne(addItems);
-            // res.json({ success: "add new item succsfully" })
+
             res.json(result);
         });
 
