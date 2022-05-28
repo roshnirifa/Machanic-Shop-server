@@ -40,6 +40,8 @@ async function run() {
         const allToolsCollection = db.collection("allTools");
         const purchaseCollection = db.collection("purchase");
         const userCollection = db.collection("users");
+        const addProductsCollection = db.collection("addedProducts");
+        let userDetails = db.collection("usersProfile");
 
 
         // all products POST
@@ -71,6 +73,30 @@ async function run() {
             res.json({ result1, result })
 
         })
+        // ADD PRODUCT
+
+        app.post('/tools', async (req, res) => {
+            const addItems = req.body;
+            console.log(addItems);
+            const result = await allToolsCollection.insertOne(addItems);
+            // res.json({ success: "add new item succsfully" })
+            res.json(result);
+        });
+
+        app.delete('/delete/:id', async (req, res) => {
+            let id = req.params.id;
+            let query = { _id: ObjectId(id) };
+            let data = await allToolsCollection.deleteOne(query);
+        });
+
+        app.post('/profile', async (req, res) => {
+            let data = req.body;
+            let result = await userDetails.insertOne(data);
+            res.send(result);
+        });
+
+
+
         //getting my orders by filtering email
         app.get('/purchase/:email', verifyJWT, async (req, res) => {
             // const { id } = req.params;
@@ -83,6 +109,17 @@ async function run() {
             const result = await purchaseCollection.find(query).toArray();
             res.json(result)
         })
+
+
+
+        app.delete('/purches/:id', async (req, res) => {
+            let id = req.params.id;
+            let query = { _id: ObjectId(id) };
+            let data = await purchaseCollection.deleteOne(query);
+        });
+
+
+
         // make admin
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
